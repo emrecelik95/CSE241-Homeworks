@@ -1,0 +1,12 @@
+MOV R1 , 0 ; R1'e 0 koy
+MOV R5 , 10 ; R5'e 10 koy(karesi alinacak sayi)
+MOV R5 , R2 ; R5 degeri R2'e kopyala(counter)
+ADD R1 , R5 ; R5 degeri R1'e ekle
+SUB R2 , 1 ; counteri azalt
+JMP R2 , 8 ; counter 0 olunca 8'e atla
+JMP 4 ; degilse 4'e atla
+SUB R5 , 1 ; karesi alinacak sayiyi 1 azalt
+JMP R5 , 11 ; bu sayi 0 ise 11.satira atla
+JMP 3 ; degilse donmeye devam et
+PRN R1 ; kareleri toplamini ekrana yaz;
+HLT ; bitir

@@ -1,0 +1,7 @@
+MOV #2 , 10  ; 2.adrese 10 at
+MOV #2 , R1 ; bunu R1'e at
+PRN R1      ; her seferinde R1'i ekrana bas
+SUB R1 , 1  ; R1 degeri 1 azalt
+JMP r1 ,7   ; R1 degeri 0 olunca 7.satıra atla 
+JMP 3        ; degilse 3. satıra atla
+HLT          ; bitir

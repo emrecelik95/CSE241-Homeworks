@@ -1,0 +1,255 @@
+#include <iostream>
+#include "CPU.h"
+#include "MyFuncs.h"  // commaExist , myStrToInt , lowToUp fonksyionları
+using namespace std;
+
+CPU::CPU(const string &op) {
+    for(int i=0;i<NUM_OF_REGS;i++) // registerlara 0 atama
+        regs[i] = 0;
+    pc = 1;                        // pc'ye 1 atama
+    option = op;                   // optiona konsoldan gelen degeri atama
+}
+
+int CPU::getPC(){
+    return pc;      // pc yi return etme
+}
+
+void CPU::setPC(const int &newPc){
+    pc = newPc;     // pc yi degistirme
+    if(currIns == "HLT") // halt olunca pc ilerlemesin
+        pc--;
+}
+
+int CPU::getReg(const string &currReg){
+    return regs[myStrToInt(&currReg[1]) - 1];   // aktif registerı dondurme
+}
+
+void CPU::mov(const string &reg,const int &val){
+    regs[myStrToInt(&currReg[1]) - 1] = val;    // aktif registera deger atama
+}
+
+void CPU::add(const string &reg,const int &val){
+    regs[myStrToInt(&currReg[1]) - 1] += val;   // aktif registerı arttırma
+}
+
+void CPU::sub(const string &reg,const int &val){
+    regs[myStrToInt(&currReg[1]) - 1] -= val;   // aktif registerı azaltma
+}
+
+void CPU::prn(const string &currVal){
+//  deger registersa veya const sa degeri yaz,degilse false dondur
+    if(isRegister(currVal))                 
+        cout <<  getReg(currVal) << endl;
+    else if(isNumber(currVal))
+        cout << currVal << endl;
+}
+
+void CPU::jmp(const int &lineNum){
+    pc = lineNum;         // pc yi istenen satır numarasını ata
+}
+
+void CPU::jmp(const int &lineNum,const string &reg){
+    if(getReg(reg) == 0){
+        pc = lineNum;     // aynı atamayı register degeri 0 ise yap
+    }
+}
+
+bool CPU ::halted(){
+    if(currIns == "HLT"){ // HLT ise print i çağır ve true dondur
+        print();
+        return true;
+    }
+    return false;
+}
+
+void CPU::print(){        // registerları ve pc yi ekrana bas
+    for(int i = 0 ; i < NUM_OF_REGS ; i++)
+        cout << "R" << i+1 << ":" << regs[i] << " ";
+    cout << " - " <<"PC:" << pc << endl;
+}
+
+bool CPU ::execute(string &line)
+{
+    int i = 0,value = 0;    // i:satırdaki aktif karakter indexi,value:aktif deger
+    bool error = false;     // hata denetim degiskeni
+    //setPC(pc + 1);          // her execute olduğunda pc 1 artsın
+    line = lowToUp(line);   // satırdaki küçük harfleri(varsa) büyüt
+    i += readIns(line);     // instructionu oku ve aktif indexi i'ye ekle
+    
+    if(option == "1"){ // option 1 ise instructionu ve registerları print et
+        for(int i = 0;line[i]!=';' && line[i]!='\0';i++)
+            cout << line[i];
+        cout << " -  ";
+    }
+// mov,add veya sub ise registerı oku ,hata kontrolü yap,fonksiyon çağır    
+    if(currIns == "MOV" || currIns == "ADD" || currIns == "SUB")
+    {
+        i += readReg(&line[i]);
+        if(!isRegister(currReg))
+            error = true;
+        else{
+            i += readVal(&line[i]);  // virgülü geçtikten sonra degeri oku
+            if(!isRegister(currVal) && !isNumber(currVal))
+                error = true;
+            else if(!checkEofLine(&line[i]))
+                error = true;    
+        }
+        if(!error){
+            if(isRegister(currVal))
+                value = getReg(currVal);
+            else if(isNumber(currVal))
+                value = myStrToInt(currVal);
+            if(currIns == "ADD")
+                add(currReg,value);
+            else if(currIns == "SUB")
+                sub(currReg,value);
+            else if(currIns == "MOV"){ // ikinci değer register ise 1'i 2'ye at
+                if(isRegister(currVal)){
+                    value = getReg(currReg);
+                    currReg = currVal;
+                }
+                mov(currReg,value);
+            }
+        }
+    }
+    else if(currIns == "PRN") // prn ise degeri oku ve ekrana bas
+    {
+        print();
+        i += readVal(&line[i]);
+        if(!checkEofLine(&line[i]))
+            error = true;
+        else if(!isRegister(currVal) && !isNumber(currVal))
+            error = true;
+        else
+            prn(currVal);
+    }
+    else if(currIns == "JMP")//jmp ise virgül olma durumuna göre jmp fonksyionu çağır
+    {
+        if(commaExist(line))
+        {
+            i += readReg(&line[i]);
+            if(!isRegister(currReg))
+                error = true;
+            else{
+                i += readVal(&line[i]);
+                if(!checkEofLine(&line[i]))
+                    error = true;
+                else if(!isNumber(currVal))
+                    error = true;
+            }
+            if(!error){
+                value = myStrToInt(currVal);
+                jmp(value - 1,currReg); // aşağıda 1 artacağı için 1 azaltıldı
+            }
+        }
+        else
+        {
+            i += readVal(&line[i]);
+            if(!checkEofLine(&line[i]))
+                    error = true;
+            else if(!isNumber(currVal))
+                error = true;
+            else{
+                value = myStrToInt(currVal);
+                jmp(value - 1);        // aşağıda 1 artacağı için 1 azaltıldı
+            }
+        }
+    }
+    else if(currIns == "HLT") // hlt dan sonra birşey yazmıyorsa registerların son durumunu ekrana bas 
+    {
+        if(!checkEofLine(&line[i])){
+            error = true;
+        }
+    }
+    else
+        error = true;
+    if(option == "1" && currIns != "PRN")
+        print();
+    if(error)
+        currIns = "HLT";
+    else
+        setPC(pc + 1);
+    return !error;
+}
+
+int CPU::readIns(const string &line){ // instructionu oku ve aktif indexi return et
+    int i;
+    bool readed = false; // mo v gibi hataların kontrolu
+    currIns = "";
+    for(i=0;!(readed== true && line[i]== ' ')&&line[i]!= '\0';i++){
+        if(line[i]!= ' '){
+            currIns += line[i];
+            readed = true;
+        }
+    }
+    return i;
+}
+
+int CPU::readReg(const string &line){//registerı oku ve aktif index + 1(virgül) return et
+    int i;
+    bool readed = false,readedSpc = false;
+    currReg = "";
+    for(i=0;!(readed== true && line[i]==',') && line[i]!= '\0';i++){
+        if(line[i]!= ' '){
+            if(readedSpc == true)
+                return -1;
+            currReg += line[i];
+            readed = true;
+        
+        }
+        if(readed == true && line[i] == ' ')
+            readedSpc = true;
+    }
+
+    return i+1;
+}
+
+int CPU::readVal(const string &line){ // value'yi oku ve aktif indexi return et
+    int i;
+    bool readed = false;
+    currVal = "";
+    for(i=0;!(readed== true && line[i]== ' ')&&line[i]!= '\0'&&line[i]!=';';i++){
+        if(line[i]!= ' '){
+            currVal += line[i];
+            readed = true;
+        }
+    }
+    return i;
+}
+
+bool CPU::checkEofLine(const string &line){
+    for(int i = 0;line[i]!='\0' && line[i]!=';';i++){
+        if(line[i]!= ' '){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool CPU::isNumber(const string &strNum) // string sayı mı diye bak
+{
+    int i;
+/* boş olma durumu                                                            */    
+    if(strNum == "\0")
+            return false;
+/* negatif olma durumunda bakacağı yerin 0 veya 1 den başlaması               */            
+    if(strNum[0] == '-')
+        i = 1;
+    else
+        i = 0;
+    for(;strNum[i]!='\0';i++)
+        if(strNum[i]< '0' || strNum[i]>'9')
+            return false;
+    return true;
+}
+
+bool CPU::isRegister(const string &reg) // string register mı diye bak
+{
+    int regNum;
+/* 1.indexten itibaren sayıysa sayıya çevir ve register mı diye bak           */
+    if(isNumber(&reg[1]) == true)
+        regNum = myStrToInt(&reg[1]);
+    if((reg[0] == 'R' || reg[0] == 'r') && regNum >= 1 && regNum <= NUM_OF_REGS)
+        return true;
+    return false;
+}

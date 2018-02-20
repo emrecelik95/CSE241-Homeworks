@@ -1,0 +1,79 @@
+MOV #1 , 30 ;10 adet sayiyi yerlestirme
+MOV #2 , 23 
+MOV #3 , 4
+MOV #4 , 56
+MOV #5 , 34
+MOV #6 , 56
+MOV #7 , 89
+MOV #8 , 32
+MOV #9 , 45
+MOV #10 , 25
+MOV R1 , 9 ;  dongunun counteri : 9
+MOV #1 , R2 ; karsilastirmak icin birinciyi yedekleme 
+SUB R2 , #2 ; farklarını alma
+JPN R2 , 18 ; fark negatifse swap yapmadan(18'den)devam etmeli
+MOV #1 , R2 ; fark pozitifse swap islemi (15,16,17)
+MOV #2 , #1
+MOV R2 , #2
+MOV #2 , R2 ; ayni islemler 2,3 icin
+SUB R2 , #3
+JPN R2 , 24
+MOV #2 , R2
+MOV #3 , #2
+MOV R2 , #3
+MOV #3 , R2 ; ayni islemler 3,4 icin
+SUB R2 , #4
+JPN R2 , 30
+MOV #3 , R2 
+MOV #4 , #3
+MOV R2 , #4
+MOV #4 , R2 ; ayni islemler 4,5 icin
+SUB R2 , #5
+JPN R2 , 36
+MOV #4 , R2
+MOV #5 , #4
+MOV R2 , #5
+MOV #5 , R2 ; ayni islemler 5,6 icin
+SUB R2 , #6
+JPN R2 , 42
+MOV #5 , R2
+MOV #6 , #5
+MOV R2 , #6
+MOV #6 , R2 ; ayni islemler 6,7 icin
+SUB R2 , #7
+JPN R2 , 48
+MOV #6 , R2
+MOV #7 , #6
+MOV R2 , #7
+MOV #7 , R2 ; ayni islemler 7,8 icin
+SUB R2 , #8
+JPN R2 , 54
+MOV #7 , R2
+MOV #8 , #7
+MOV R2 , #8
+MOV #8 , R2 ; ayni islemler 8,9 icin
+SUB R2 , #9
+JPN R2 , 60
+MOV #8 , R2
+MOV #9 , #8
+MOV R2 , #9
+MOV #9 , R2 ; ayni islemler 9,10 icin
+SUB R2 , #10
+JPN R2 , 66
+MOV #9 , R2
+MOV #10 , #9
+MOV R2 , #10
+SUB R1 , 1 ; dongunun counterini 1 azalt
+JMP R1 , 69; counter 0 olunca sayilari ekrana yaz
+JMP 12 ; counter 0 degilse donmeye devam et
+PRN #1
+PRN #2
+PRN #3
+PRN #4
+PRN #5
+PRN #6
+PRN #7
+PRN #8
+PRN #9
+PRN #10
+HLT ; bitir
